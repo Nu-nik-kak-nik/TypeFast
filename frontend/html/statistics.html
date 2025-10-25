@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <link rel="icon" href="/favicon.svg" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Статистика пользователя</title>
+        <link rel="stylesheet" href="/static/css/style.css" />
+        <link rel="stylesheet" href="/static/css/statistics-style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body data-theme="dark">
+        <div class="container">
+            <header>
+                <h1>Статистика пользователя</h1>
+                <div class="header-controls">
+                    <button
+                        class="back-btn"
+                        id="back-btn"
+                        title="Вернуться на главную"
+                    >
+                        <span class="back-icon">←</span> Назад
+                    </button>
+                </div>
+            </header>
+
+            <div class="profile-content" id="user-statistics">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка статистики...</p>
+                </div>
+            </div>
+        </div>
+
+        <script src="/static/js/user-statistics.js"></script>
+    </body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <link rel="icon" href="/favicon.svg" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Тренажер печати</title>
+        <link rel="stylesheet" href="/static/css/style.css" />
+    </head>
+    <body data-theme="dark">
+        <div class="container">
+            <header>
+                <h1>Тренажер печати</h1>
+                <div class="header-controls">
+                    <!-- Переключатель языка -->
+                    <div class="language-switch">
+                        <button class="switch-btn active" data-lang="ru">
+                            RU
+                        </button>
+                        <div class="switch-track">
+                            <div class="switch-thumb"></div>
+                        </div>
+                        <button class="switch-btn" data-lang="en">EN</button>
+                    </div>
+
+                    <button
+                        class="theme-btn"
+                        id="theme-btn"
+                        title="Переключить тему"
+                    >
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <button
+                        class="profile-btn"
+                        id="profile-btn"
+                        title="Профиль"
+                    >
+                        <span class="profile-icon">🧑</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">
+                    Лёгкий
+                </button>
+                <button class="difficulty-btn" data-difficulty="medium">
+                    Средний
+                </button>
+                <button class="difficulty-btn" data-difficulty="hard">
+                    Сложный
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="speed">0</div>
+                    <div class="stat-label">зн./мин</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="accuracy">100%</div>
+                    <div class="stat-label">точность</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="timer">0:00</div>
+                    <div class="stat-label">время</div>
+                </div>
+            </div>
+
+            <div class="text-display" id="text-display">
+                <div class="language-hint">
+                    Выбран язык: <span class="lang-name">Русский</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="input-container">
+                <textarea
+                    class="input-area"
+                    id="text-input"
+                    placeholder=" "
+                ></textarea>
+                <div class="input-hint">Начните печатать...</div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-btn" class="btn-primary">Сбросить</button>
+            </div>
+
+            <div class="result" id="result">
+                <h2>Результат</h2>
+                <div class="result-stats">
+                    <div class="result-item">
+                        <span class="result-label">Скорость</span>
+                        <span class="result-value" id="result-speed">0</span>
+                        <span class="result-label">зн./мин</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Точность</span>
+                        <span class="result-value" id="result-accuracy"
+                            >100%</span
+                        >
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Время</span>
+                        <span class="result-value" id="result-time">0:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="/static/js/script.js"></script>
+    </body>
+</html>
