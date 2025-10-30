@@ -6,6 +6,7 @@ from backend.app.schemas.text_schemas import TextRequest, TextResponse
 from backend.app.schemas.db_schemas import TestResultCreate, UserCreate
 from backend.app.db.dependencies import SessionDependency
 from backend.app.db.repositories import UserRepository, TestResultRepository
+from backend.app.services.progress_calculator import UserProgressCalculator
 
 
 router = APIRouter()
@@ -89,25 +90,25 @@ async def save_test_result(
 async def get_user_test_statistics(user_id: str, session: SessionDependency):
     test_result_repo = TestResultRepository(session)
     try:
-        last_result = await test_result_repo.get_last_result_by_user_id(user_id)
-        best_performance = await test_result_repo.get_user_best_performance(user_id)
-        avg_statistics = await test_result_repo.get_user_test_result_statistics(user_id)
         all_test_results = await test_result_repo.get_by_user_id(user_id)
 
-        if (
-            last_result is None
-            and best_performance is None
-            and avg_statistics is None
-            and all_test_results is list[None]
-        ):
+        if not all_test_results:
             raise HTTPException(
                 status_code=404, detail="Статистика для данного пользователя не найдена"
             )
+
+        last_result = await test_result_repo.get_last_result_by_user_id(user_id)
+        best_performance = await test_result_repo.get_user_best_performance(user_id)
+        avg_statistics = await test_result_repo.get_user_test_result_statistics(user_id)
+        progress_metrics = await UserProgressCalculator.calculate_progress(
+            all_test_results
+        )
 
         return {
             "last_result": last_result,
             "best_performance": best_performance,
             "avg_statistics": avg_statistics,
+            "progress_metrics": progress_metrics,
             "all_test_results": all_test_results,
         }
 
