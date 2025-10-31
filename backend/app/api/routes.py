@@ -45,16 +45,15 @@ async def get_random_text(
 
 @router.post("/test-result")
 async def save_test_result(
-    test_data: dict[str, str | int | float],
+    test_data: dict[str, str | int | float | None],
     session: SessionDependency,
 ):
     try:
         user_repo = UserRepository(session)
         test_result_repo = TestResultRepository(session)
-
         user_id = test_data.get("user_id")
 
-        if not user_id:
+        if user_id in (None, "anonymous", ""):
             user = await user_repo.create(UserCreate())
             user_id = user.id
         else:
@@ -91,7 +90,6 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
     test_result_repo = TestResultRepository(session)
     try:
         all_test_results = await test_result_repo.get_by_user_id(user_id)
-
         if not all_test_results:
             raise HTTPException(
                 status_code=404, detail="Статистика для данного пользователя не найдена"

@@ -25,16 +25,13 @@ class DatabaseConfig(TypedDict):
 class Settings(BaseModel):
     """Настройки приложения"""
 
-    # App settings
     app_module: str = Field(default="backend.app.main:app")
     app_host: str = Field(default="0.0.0.0")
     app_port: int = Field(default=8000)
     app_reload: bool = Field(default=True)
 
-    # Path settings
     base_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[3])
 
-    # File paths
     en_filepath: Path = Field(default=Path("backend/app/words_data/words_alpha.txt"))
     ru_filepath: Path = Field(
         default=Path("backend/app/words_data/singular_and_plural.txt")
@@ -43,7 +40,6 @@ class Settings(BaseModel):
         default=Path("backend/app/words_data/singular_and_plural.txt")
     )
 
-    # Frontend settings
     static_dir_name: str = Field(default="css")
     static_js_dir_name: str = Field(default="js")
     frontend_dir: Path = Field(default=Path("frontend"))
@@ -56,7 +52,6 @@ class Settings(BaseModel):
     html_index_path: Path = Field(default=Path("frontend/html/index.html"))
     html_statistics_path: Path = Field(default=Path("frontend/html/statistics.html"))
 
-    # Database settings
     database_name: str = Field(default="typing_test.db")
     database_url: str = Field(default="sqlite+aiosqlite:///typing_test.db")
     database_echo: bool = Field(default=True)
@@ -75,18 +70,15 @@ class Settings(BaseModel):
     default_count_words: int = Field(default=50)
     default_level: Literal["easy", "medium", "hard"] = Field(default="easy")
 
-    # Patterns
     language_pattern: str = Field(default="^(ru|en)$")
     difficulty_pattern: str = Field(default="^(easy|medium|hard)$")
 
-    # Field constants
     chars_per_minute: str = Field(default="chars_per_minute")
     accuracy: str = Field(default="accuracy")
     time_seconds: str = Field(default="time_seconds")
     language: str = Field(default="language")
     difficulty: str = Field(default="difficulty")
 
-    # Вычисляемые свойства
     _probability: dict[Literal["easy", "medium", "hard", "test"], float] = {
         "easy": -1.0,
         "medium": 0.15,
@@ -109,9 +101,9 @@ class Settings(BaseModel):
     }
 
     _number_of_words: dict[Literal["easy", "medium", "hard", "test"], int] = {
-        "easy": 30,
-        "medium": 35,
-        "hard": 40,
+        "easy": 25,
+        "medium": 30,
+        "hard": 35,
         "test": 50,
     }
 
@@ -124,7 +116,6 @@ class Settings(BaseModel):
         self._calculate_paths()
 
     def _calculate_paths(self) -> None:
-        """Вычисляем абсолютные пути на основе base_dir"""
         self.frontend_dir = self.base_dir / self.frontend_dir
         self.html_dir = self.base_dir / self.html_dir
         self.static_dir = self.base_dir / self.static_dir
@@ -135,7 +126,6 @@ class Settings(BaseModel):
         self.ru_filepath = self.base_dir / self.ru_filepath
         self.default_filepath = self.base_dir / self.default_filepath
 
-        # Обновляем URL базы данных с абсолютным путем
         if "sqlite" in self.database_url and not self.database_url.startswith(
             "sqlite+aiosqlite:///"
         ):
@@ -202,5 +192,4 @@ class Settings(BaseModel):
         }
 
 
-# Глобальный экземпляр настроек
 settings = Settings()
