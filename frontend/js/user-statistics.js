@@ -225,9 +225,9 @@ class UserStatistics {
   renderStatCard(icon, title, items) {
     return `
       <div class="stat-card">
-        <div class="stat-icon">${icon}</div>
-        <div class="stat-content">
-          <h4>${title}</h4>
+      <div class="stat-card__icon">${icon}</div>
+        <div class="stat-card__content">
+          <h4 class="stat-card__title">${title}</h4>
           ${items
             .map(
               (item) => `
@@ -249,7 +249,7 @@ class UserStatistics {
   renderNoResults() {
     return `
       <div class="no-results">
-        <div class="no-results-icon">📝</div>
+      <div class="no-results__icon">📝</div>
         <h3>Тесты еще не пройдены</h3>
         <p>Статистика появится после прохождения первых тестов</p>
       </div>
@@ -522,7 +522,7 @@ class UserStatistics {
         <div class="error-icon">⚠️</div>
         <h3>Ошибка загрузки</h3>
         <p>${message || "Не удалось загрузить статистику"}</p>
-        <button class="btn-primary" onclick="location.reload()">Попробовать снова</button>
+        <button class="btn btn--primary" onclick="location.reload()">Попробовать снова</button>
       </div>
     `;
   }

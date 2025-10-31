@@ -231,6 +231,8 @@ async function finishTest() {
       difficulty: currentDifficulty,
     };
 
+    console.log("Отправляемые данные:", testResultData);
+
     const response = await fetch("/api/test-result", {
       method: "POST",
       headers: {
