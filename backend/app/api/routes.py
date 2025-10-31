@@ -7,6 +7,7 @@ from backend.app.schemas.db_schemas import TestResultCreate, UserCreate
 from backend.app.db.dependencies import SessionDependency
 from backend.app.db.repositories import UserRepository, TestResultRepository
 from backend.app.services.progress_calculator import UserProgressCalculator
+from backend.app.core.logger import error_logger, request_logger
 
 
 router = APIRouter()
@@ -21,6 +22,7 @@ async def get_random_text(
     difficulty: str = Query(default="easy", description="Уровень сложности"),
 ):
     try:
+        request_logger.info(f"Text request: lang={lang}, difficulty={difficulty}")
         request = TextRequest(lang=lang, difficulty=difficulty)
 
         config = settings.text_generation_config[request.lang][request.difficulty]
@@ -40,6 +42,7 @@ async def get_random_text(
         )
 
     except Exception as e:
+        error_logger.error(f"Error in get_random_text: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -49,6 +52,7 @@ async def save_test_result(
     session: SessionDependency,
 ):
     try:
+        request_logger.info(f"Test result request: {test_data}")
         user_repo = UserRepository(session)
         test_result_repo = TestResultRepository(session)
         user_id = test_data.get("user_id")
@@ -77,10 +81,12 @@ async def save_test_result(
         return {"user_id": user_id, "test_result_id": test_result.id}
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Некорректные данные: {str(e)}")
+        error_logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Incorrect data: {str(e)}")
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка сохранения: {str(e)}")
+        error_logger.error(f"Error in save_test_result: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Save error: {str(e)}")
 
 
 @router.get(
@@ -91,8 +97,9 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
     try:
         all_test_results = await test_result_repo.get_by_user_id(user_id)
         if not all_test_results:
+            error_logger.warning("No statistics found for this user")
             raise HTTPException(
-                status_code=404, detail="Статистика для данного пользователя не найдена"
+                status_code=404, detail="No statistics found for this user"
             )
 
         last_result = await test_result_repo.get_last_result_by_user_id(user_id)
@@ -110,7 +117,10 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
             "all_test_results": all_test_results,
         }
 
-    except Exception:
+    except Exception as e:
+        error_logger.error(
+            f"Error in get_user_test_statistics: {str(e)}", exc_info=True
+        )
         raise HTTPException(
-            status_code=500, detail="Внутренняя ошибка сервера при получении статистики"
+            status_code=500, detail="Internal server error when receiving statistics"
         )

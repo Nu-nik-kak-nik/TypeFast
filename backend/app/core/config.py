@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Literal, TypedDict
 from pydantic import BaseModel, Field
@@ -20,6 +21,15 @@ class DatabaseConfig(TypedDict):
     url: str
     echo: bool
     future: bool
+
+
+class LoggingConfig(TypedDict):
+    logs_dir: Path
+    error_log_filename: str
+    request_log_filename: str
+    max_log_size_bytes: int
+    backup_count: int
+    log_level: int
 
 
 class Settings(BaseModel):
@@ -57,7 +67,6 @@ class Settings(BaseModel):
     database_echo: bool = Field(default=True)
     database_future: bool = Field(default=True)
 
-    # Application constants
     allowed_levels: list[Literal["easy", "medium", "hard", "test"]] = Field(
         default=["easy", "medium", "hard", "test"]
     )
@@ -107,9 +116,20 @@ class Settings(BaseModel):
         "test": 50,
     }
 
+    logging_config: LoggingConfig = Field(
+        default_factory=lambda: {
+            "logs_dir": Path("logs"),
+            "error_log_filename": "errors_{date}.log",
+            "request_log_filename": "requests_{date}.log",
+            "max_log_size_bytes": 10 * 1024 * 1024,
+            "backup_count": 2,
+            "log_level": logging.INFO,
+        }
+    )
+
     class Config:
-        validate_assignment = True
-        arbitrary_types_allowed = True
+        validate_assignment: bool = True
+        arbitrary_types_allowed: bool = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -131,6 +151,11 @@ class Settings(BaseModel):
         ):
             db_path = self.base_dir / self.database_name
             self.database_url = f"sqlite+aiosqlite:///{db_path}"
+
+        self.logging_config["logs_dir"] = (
+            self.base_dir / self.logging_config["logs_dir"]
+        )
+        self.logging_config["logs_dir"].mkdir(exist_ok=True, parents=True)
 
     @property
     def database_config(self) -> DatabaseConfig:
