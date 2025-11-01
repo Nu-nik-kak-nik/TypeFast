@@ -22,7 +22,7 @@ async def get_random_text(
     difficulty: str = Query(default="easy", description="Уровень сложности"),
 ):
     try:
-        request_logger.info(f"Text request: lang={lang}, difficulty={difficulty}")
+        request_logger.info(f"Text request: lang = {lang}, difficulty = {difficulty}")
         request = TextRequest(lang=lang, difficulty=difficulty)
 
         config = settings.text_generation_config[request.lang][request.difficulty]
@@ -95,6 +95,7 @@ async def save_test_result(
 async def get_user_test_statistics(user_id: str, session: SessionDependency):
     test_result_repo = TestResultRepository(session)
     try:
+        request_logger.info(f"Request user: {user_id} test statistics")
         all_test_results = await test_result_repo.get_by_user_id(user_id)
         if not all_test_results:
             error_logger.warning("No statistics found for this user")
