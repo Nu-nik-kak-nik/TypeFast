@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import ClassVar
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from backend.app.core.config import settings
 
 
@@ -19,13 +21,11 @@ class UserResponse(UserBase):
 
 class TestResultBase(BaseModel):
     user_id: str
-    chars_per_minute: float = Field(gt=0, description="Символов в минуту")
-    accuracy: float = Field(ge=0, le=100, description="Точность в процентах")
-    time_seconds: float = Field(gt=0, description="Время выполнения в секундах")
-    language: str = Field(pattern=settings.language_pattern, description="Язык теста")
-    difficulty: str = Field(
-        pattern=settings.difficulty_pattern, description="Сложность теста"
-    )
+    chars_per_minute: float = Field(gt=0)
+    accuracy: float = Field(ge=0, le=100)
+    time_seconds: float = Field(gt=0)
+    language: str = Field(pattern=settings.language_pattern)
+    difficulty: str = Field(pattern=settings.difficulty_pattern)
     created_at: datetime | None = None
 
 

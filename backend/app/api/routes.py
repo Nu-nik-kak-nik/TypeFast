@@ -1,14 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
-from backend.app.core.config import settings
-from backend.app.services.word_extractor import WordExtractor
-from backend.app.services.utils import safe_float_convert, safe_str_convert
-from backend.app.schemas.text_schemas import TextRequest, TextResponse
-from backend.app.schemas.db_schemas import TestResultCreate, UserCreate
-from backend.app.db.dependencies import SessionDependency
-from backend.app.db.repositories import UserRepository, TestResultRepository
-from backend.app.services.progress_calculator import UserProgressCalculator
-from backend.app.core.logger import error_logger, request_logger
 
+from backend.app.core.config import settings
+from backend.app.core.logger import error_logger, request_logger
+from backend.app.db.dependencies import SessionDependency
+from backend.app.db.repositories import TestResultRepository, UserRepository
+from backend.app.schemas.db_schemas import TestResultCreate, UserCreate
+from backend.app.schemas.text_schemas import TextRequest, TextResponse
+from backend.app.services.progress_calculator import UserProgressCalculator
+from backend.app.services.word_extractor import WordExtractor
 
 router = APIRouter()
 
@@ -48,16 +47,16 @@ async def get_random_text(
 
 @router.post("/test-result")
 async def save_test_result(
-    test_data: dict[str, str | int | float | None],
+    test_data: TestResultCreate,
     session: SessionDependency,
 ):
     try:
         request_logger.info(f"Test result request: {test_data}")
         user_repo = UserRepository(session)
         test_result_repo = TestResultRepository(session)
-        user_id = test_data.get("user_id")
+        user_id = test_data.user_id
 
-        if user_id in (None, "anonymous", ""):
+        if user_id in ("anonymous", ""):
             user = await user_repo.create(UserCreate())
             user_id = user.id
         else:
@@ -68,13 +67,11 @@ async def save_test_result(
 
         test_result_data = TestResultCreate(
             user_id=str(user_id),
-            chars_per_minute=safe_float_convert(
-                test_data.get(settings.chars_per_minute)
-            ),
-            accuracy=safe_float_convert(test_data.get(settings.accuracy)),
-            time_seconds=safe_float_convert(test_data.get(settings.time_seconds)),
-            language=safe_str_convert(test_data.get(settings.language)),
-            difficulty=safe_str_convert(test_data.get(settings.difficulty)),
+            chars_per_minute=test_data.chars_per_minute,
+            accuracy=test_data.accuracy,
+            time_seconds=test_data.time_seconds,
+            language=test_data.language,
+            difficulty=test_data.difficulty,
         )
         test_result = await test_result_repo.create(test_result_data)
 
@@ -106,9 +103,7 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
         last_result = await test_result_repo.get_last_result_by_user_id(user_id)
         best_performance = await test_result_repo.get_user_best_performance(user_id)
         avg_statistics = await test_result_repo.get_user_test_result_statistics(user_id)
-        progress_metrics = await UserProgressCalculator.calculate_progress(
-            all_test_results
-        )
+        progress_metrics = UserProgressCalculator.calculate_progress(all_test_results)
 
         return {
             "last_result": last_result,
@@ -117,6 +112,9 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
             "progress_metrics": progress_metrics,
             "all_test_results": all_test_results,
         }
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         error_logger.error(
