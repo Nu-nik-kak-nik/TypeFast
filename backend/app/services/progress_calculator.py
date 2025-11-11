@@ -6,9 +6,10 @@ from backend.app.schemas.progress_schemas import ProgressMetrics
 
 class UserProgressCalculator:
     @staticmethod
-    async def calculate_progress(
+    def calculate_progress(
         all_test_results: list[TestResult],
     ) -> ProgressMetrics:
+        """Расчет метрик прогресса пользователя"""
         if not all_test_results or len(all_test_results) < 2:
             return ProgressMetrics(
                 speed_progress=0.0,
@@ -40,6 +41,7 @@ class UserProgressCalculator:
 
     @staticmethod
     def _calculate_trend_progress(values: list[float], reverse: bool = False) -> float:
+        """Расчет тренда прогресса по значениям"""
         if len(values) < 2:
             return 0.0
 
@@ -60,14 +62,17 @@ class UserProgressCalculator:
     def _calculate_consistency(
         speeds: list[float], accuracies: list[float], times: list[float]
     ) -> float:
+        """Расчет оценки консистентности (стабильности) результатов"""
+
         def coefficient_of_variation(values: list[float]) -> float:
+            """Коэффициент вариации (мера разброса данных)"""
             if not values or mean(values) == 0:
                 return 0.0
 
             try:
                 std = pstdev(values) if len(values) > 1 else 0
                 return (std / mean(values)) * 100
-            except:
+            except Exception:
                 return 0.0
 
         cv_speed = coefficient_of_variation(speeds)
