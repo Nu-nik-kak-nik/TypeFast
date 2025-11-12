@@ -1,15 +1,17 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import select, delete, desc, func
+
+from sqlalchemy import delete, desc, func, select
+from sqlalchemy.exc import DBAPIError, IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, DBAPIError
-from backend.app.db.models import User, TestResult
+
 from backend.app.core.exceptions import DatabaseException, NotFoundException
+from backend.app.db.models import TestResult, User
 from backend.app.schemas.db_schemas import (
-    UserCreate,
     TestResultCreate,
-    UserBestTestStatistics,
     UserAvgTestStatistics,
+    UserBestTestStatistics,
+    UserCreate,
     UserLastTestStatistics,
 )
 
@@ -143,6 +145,7 @@ class TestResultRepository:
                 await self.session.delete(test_result)
                 await self.session.commit()
                 return True
+
             return False
 
         except NotFoundException:
