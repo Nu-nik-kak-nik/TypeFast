@@ -1,46 +1,103 @@
 version: "3.8"
 
 services:
-  typefast:
+  # ============================================
+  # FastAPI Backend
+  # ============================================
+  typefast-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: typefast-app
-    ports:
-      - "8000:8000"
-      - "8080:8080"
+    container_name: typefast-backend
+
+    # Не открываем порт 8000 напрямую, только через nginx
+    expose:
+      - "8000"
+
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      # Данные и логи
+      - typefast-data:/app/data
+      - typefast-logs:/app/logs
+
+      # Для разработки (опционально, закомментируйте для production)
       - ./backend:/app/backend
       - ./frontend:/app/frontend
+
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=sqlite:///./data/typefast.db
+      - DATABASE_URL=sqlite:////app/data/typefast.db
+      # Добавьте другие переменные из вашего .env файла
+
     restart: unless-stopped
     networks:
       - typefast-network
-    depends_on:
-      - nginx
 
-  nginx:
+    # Зависит от nginx (nginx должен запуститься первым)
+    depends_on:
+      - typefast-nginx
+
+    # Логирование
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Nginx Reverse Proxy
+  # ============================================
+  typefast-nginx:
     image: nginx:alpine
     container_name: typefast-nginx
+
     ports:
       - "8080:80"
+      # Опционально для HTTPS (если будет SSL)
+      # - "443:443"
+
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro
+      # Конфигурация nginx
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - typefast
+
+      # Статические файлы фронтенда
+      - ./frontend:/usr/share/nginx/html:ro
+
+      # Логи nginx (опционально)
+      - typefast-nginx-logs:/var/log/nginx
+
+    restart: unless-stopped
     networks:
       - typefast-network
-    restart: unless-stopped
 
+    # Health check для nginx
+    healthcheck:
+      test:
+        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ============================================
+# Networks
+# ============================================
 networks:
   typefast-network:
     driver: bridge
 
+# ============================================
+# Volumes
+# ============================================
 volumes:
   typefast-data:
+    driver: local
   typefast-logs:
+    driver: local
+  typefast-nginx-logs:
+    driver: local
