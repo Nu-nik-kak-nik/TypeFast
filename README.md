@@ -2,21 +2,7 @@
 
 **TypeFast** — это веб-приложение для проверки скорости печати с генерацией текста из словаря, поддержкой русского и английского языков для печати, различными уровнями сложности, автоматическим профилем пользователя и детальной статистикой с графиками.
 
-<div style="text-align: center; margin: 20px 0;">
-  <video 
-    width="100%" 
-    max-width="900px"
-    controls 
-    autoplay 
-    muted 
-    loop 
-    poster="docs/images/01-poster.png"
-    style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-  >
-    <source src="docs/video/01-optimized.webm" type="video/webm">
-    Ваш браузер не поддерживает встроенное видео.
-  </video>
-</div>
+![Экран мониторинга](docs/video/output.gif)
 
 ## 📚 Содержание
 
