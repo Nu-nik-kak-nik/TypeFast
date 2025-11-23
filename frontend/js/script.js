@@ -165,6 +165,7 @@ function renderText() {
 
   textDisplay.innerHTML = "";
   textDisplay.appendChild(fragment);
+  textInput.setAttribute("maxlength", currentText.length);
 }
 
 function updateProgressBar(currentIndex, totalLength) {
@@ -223,9 +224,9 @@ async function finishTest() {
 
   try {
     const testResultData = {
-      user_id: localStorage.getItem("user_id"),
-      chars_per_minute: parseInt(speedElement.textContent) || 0,
-      accuracy: parseInt(accuracyElement.textContent) || 0,
+      user_id: localStorage.getItem("user_id") || "",
+      chars_per_minute: parseFloat(speedElement.textContent) || 0.0,
+      accuracy: parseFloat(accuracyElement.textContent) || 0.0,
       time_seconds: elapsedTime,
       language: currentLanguage,
       difficulty: currentDifficulty,
@@ -271,8 +272,14 @@ async function finishTest() {
 function handleInput() {
   if (isCompleted) return;
 
-  const inputText = textInput.value;
-  totalChars = inputText.length;
+  let inputText = textInput.value;
+  if (inputText.length > currentText.length) {
+    inputText = inputText.slice(0, currentText.length);
+    textInput.value = inputText;
+  }
+
+  const newLength = inputText.length;
+  totalChars = newLength;
 
   if (!isActive && totalChars > 0) {
     startTest();
@@ -286,14 +293,14 @@ function handleInput() {
   for (let i = 0; i < chars.length; i++) {
     chars[i].className = "char";
 
-    if (i < inputText.length) {
+    if (i < newLength) {
       if (inputText[i] === currentText[i]) {
         chars[i].classList.add("correct");
         newCorrectChars++;
       } else {
         chars[i].classList.add("incorrect");
       }
-    } else if (i === inputText.length) {
+    } else if (i === newLength) {
       chars[i].classList.add("current-char");
     }
   }
@@ -315,7 +322,7 @@ function handleInput() {
     }
   }
 
-  if (inputText.length === currentText.length) {
+  if (newLength >= currentText.length) {
     finishTest();
   }
 }
