@@ -1,12 +1,12 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, Response
 
-from backend.app.db.dependencies import init_models
 from backend.app.api.routes import router
 from backend.app.core.config import settings
+from backend.app.db.dependencies import init_models
 
 app = FastAPI()
 
@@ -30,7 +30,7 @@ app.mount(
 )
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def read_index():
     with open(settings.html_index_path, "r") as f:
         html_content = f.read()
@@ -38,14 +38,24 @@ async def read_index():
     return html_content
 
 
-@app.get("/favicon.svg")
+@app.get("/favicon.svg", include_in_schema=False)
 async def favicon():
-    svg_content = """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <text y=".9em" font-size="90">⚡</text>
-    </svg>
-    """
-    return Response(content=svg_content, media_type="image/svg+xml")
+    return FileResponse(
+        settings.frontend_dir / "favicon.svg",
+        media_type="image/svg+xml",
+        headers={
+            "Cache-Control": "public, max-age=31536000, immutable",
+        },
+    )
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon_ico():
+    return FileResponse(
+        settings.frontend_dir / "favicon.svg",
+        media_type="image/x-icon",
+        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+    )
 
 
 @app.get("/statistics/{user_id}", response_class=HTMLResponse)
