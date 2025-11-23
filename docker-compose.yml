@@ -1,103 +1,38 @@
 version: "3.8"
 
 services:
-  # ============================================
-  # FastAPI Backend
-  # ============================================
-  typefast-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  backend:
+    build: .
     container_name: typefast-backend
-
-    # Не открываем порт 8000 напрямую, только через nginx
-    expose:
-      - "8000"
-
+    ports:
+      - "8000:8000"
     volumes:
-      # Данные и логи
-      - typefast-data:/app/data
-      - typefast-logs:/app/logs
-
-      # Для разработки (опционально, закомментируйте для production)
+      - typefast_db:/app
+      - typefast_logs:/app/logs
       - ./backend:/app/backend
       - ./frontend:/app/frontend
-
+      - ./alembic.ini:/app/alembic.ini
+      - ./migrations:/app/migrations
+      - ./backend/app/core:/app/backend/app/core
     environment:
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=sqlite:////app/data/typefast.db
-      # Добавьте другие переменные из вашего .env файла
-
-    restart: unless-stopped
-    networks:
-      - typefast-network
-
-    # Зависит от nginx (nginx должен запуститься первым)
-    depends_on:
-      - typefast-nginx
-
-    # Логирование
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # ============================================
-  # Nginx Reverse Proxy
-  # ============================================
-  typefast-nginx:
-    image: nginx:alpine
-    container_name: typefast-nginx
-
-    ports:
-      - "8080:80"
-      # Опционально для HTTPS (если будет SSL)
-      # - "443:443"
-
-    volumes:
-      # Конфигурация nginx
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-
-      # Статические файлы фронтенда
-      - ./frontend:/usr/share/nginx/html:ro
-
-      # Логи nginx (опционально)
-      - typefast-nginx-logs:/var/log/nginx
-
-    restart: unless-stopped
-    networks:
-      - typefast-network
-
-    # Health check для nginx
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+    command: >
+      bash -c "
+        echo 'Applying migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting Uvicorn...' &&
+        uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
     healthcheck:
-      test:
-        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-# ============================================
-# Networks
-# ============================================
-networks:
-  typefast-network:
-    driver: bridge
-
-# ============================================
-# Volumes
-# ============================================
 volumes:
-  typefast-data:
-    driver: local
-  typefast-logs:
-    driver: local
-  typefast-nginx-logs:
-    driver: local
+  typefast_db:
+    name: typefast_db_volume
+  typefast_logs:
+    name: typefast_logs_volume

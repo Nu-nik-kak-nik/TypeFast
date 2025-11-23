@@ -1,48 +1,31 @@
-FROM python:3.13-slim as builder
+FROM python:3.13-slim AS builder
 
-WORKDIR /app
-
-# Установка зависимостей для сборки
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование и установка Python зависимостей
+WORKDIR /app
+
 COPY requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-# ============================================
-# Финальный образ
-# ============================================
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# Установка runtime зависимостей
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN useradd --create-home --shell /bin/bash appuser
+USER appuser
+ENV PATH="/home/appuser/.local/bin:${PATH}"
 
-# Копирование установленных пакетов из builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder --chown=appuser:appuser /home/appuser/.local /home/appuser/.local
 
-# Копирование кода приложения
-COPY backend ./backend
-COPY frontend ./frontend
+COPY --chown=appuser:appuser . .
 
-# Переменные окружения
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
-# Создание директорий для данных и логов
-RUN mkdir -p /app/data /app/logs
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/docs || exit 1
-
-# Запуск приложения через main.py
-CMD ["python", "backend/app/main.py"]
+RUN mkdir -p /app/logs
 
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

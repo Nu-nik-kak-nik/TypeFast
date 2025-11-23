@@ -1,14 +1,12 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from alembic import context
+from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from alembic import context
-
 from backend.app.core.config import settings
-from backend.app.db.models import User
 from backend.app.db.database import Base
+from backend.app.db.models import User
 
 config = context.config
 
@@ -21,7 +19,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode."""
+    """Запуск миграций в 'offline' режиме."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -42,7 +40,7 @@ def do_run_migrations(connection):
 
 
 async def run_migrations_online() -> None:
-    """Run migrations in 'online' mode with async engine."""
+    """Запуск миграций в 'online' режиме с асинхронным движком."""
     connectable = AsyncEngine(
         engine_from_config(
             config.get_section(config.config_ini_section, {}),

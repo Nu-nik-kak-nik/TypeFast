@@ -122,11 +122,12 @@
   │   │   ├── test_word_extractor.py        # Тесты извлечения слов
   │   │   └── test_progress_calculator.py   # Тесты расчетов
   │   │
-  │   ├── 🔄 migrations/
-  │   │   ├── env.py                        # Конфиг миграций Alembic
-  │   │   ├── script.py.mako                # Шаблон миграций
-  │   │   └── versions/                     # История миграций
-  │   │
+  │   └── 🔄 migrations/
+  │       ├── env.py                        # Конфиг миграций Alembic
+  │       ├── script.py.mako                # Шаблон миграций
+  │       ├── make_db.py                    # Скрипт создания и удаления БД
+  │       └── versions/                     # История миграций
+  │
   │
   ├── 🎨 frontend/
   │   ├── 🌐 html/
@@ -337,7 +338,7 @@ curl -X 'GET' \
 
 **Запустить конкретный файл тестов**
 ```bash
-  pytest backend/app/tests/test_routes.py
+  pytest backend/tests/test_routes.py
 ```
 
 **Запустить с покрытием кода**
