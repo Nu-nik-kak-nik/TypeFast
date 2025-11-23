@@ -21,9 +21,9 @@ class UserResponse(UserBase):
 
 class TestResultBase(BaseModel):
     user_id: str
-    chars_per_minute: float = Field(gt=0)
-    accuracy: float = Field(ge=0, le=100)
-    time_seconds: float = Field(gt=0)
+    chars_per_minute: float | int = Field(gt=0)
+    accuracy: float | int = Field(ge=0, le=100)
+    time_seconds: float | int = Field(gt=0)
     language: str = Field(pattern=settings.language_pattern)
     difficulty: str = Field(pattern=settings.difficulty_pattern)
     created_at: datetime | None = None
