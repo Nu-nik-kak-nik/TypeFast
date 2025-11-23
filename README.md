@@ -219,8 +219,8 @@ python backend/app/main.py
 Приложение будет доступно по адресам:
 
 - 🌐 Фронтенд: http://localhost:8000
-- 🔌 API: http://localhost:8000/api
-- 📚 API документация: http://localhost:8000/docs
+- 🔌 API: http://localhost:8000/api 
+- 📚 API Документация: http://localhost:8000/docs
 
 ---
 ## 🐳 Способ 2: Запуск с Docker
@@ -230,60 +230,63 @@ python backend/app/main.py
 Запустить приложение **одной командой**:
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 Последующие запуски:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 Приложение будет доступно по адресам:
 
-- 🌐 Фронтенд: http://localhost:8080
-- 🔌 http://localhost:8080/api/
-- 📚 API документация: http://localhost:8080/docs
+- 🌐 Фронтенд: http://localhost:8000
+- 🔌 API: http://localhost:8000/api 
+- 📚 API Документация: http://localhost:8000/docs
+- ❤️ Healthcheck: http://localhost:8000/api/health 
 
 ---
 ### 🛑 Остановка приложения
 
-**Остановить контейнеры (данные сохраняются):**
-
-```bash
-docker-compose stop
-```
-
-**Остановить и удалить контейнеры (данные сохраняются):**
-
-```bash
-docker-compose down
-```
-
-**Полная очистка (удалить всё, включая данные):**
-
-```bash
-docker-compose down -v
-```
+| Команда | Что делает |
+|--------|------------|
+| `docker compose stop` | Останавливает контейнеры, **данные сохраняются** (БД, логи) |
+| `docker compose down` | Останавливает и удаляет контейнеры, **данные сохраняются** (volumes остаются) |
+| `docker compose down -v` | **Полная очистка**: удаляет контейнеры + **удаляет данные** (БД и логи) |
 
 ---
 
 ### 📊 Просмотр логов
 
-**Логи всех сервисов:**
+**Логи сервиса:**
 
 ```bash
-docker-compose logs
+docker compose logs backend
 ```
 
-**Логи конкретного сервиса:**
+**В реальном времени:**
 
 ```bash
-docker-compose logs typefast
-docker-compose logs nginx
+docker compose logs -f backend
+```
+
+### 🧪 Запустить тесты
+
+```bash
+docker compose exec backend pytest
 ```
 
 ---
+### 🗃️ Где хранятся данные?
+
+| Данные | Путь в контейнере | Как получить на хосте |
+|--------|-------------------|------------------------|
+| База данных (`typing_test.db`) | `/app/typing_test.db` | `docker volume inspect typefast_db_volume` |
+| Логи | `/app/logs/` | `docker volume inspect typefast_logs_volume` |
+
+---
+
 ## 🔌 API примеры
 
 ### 📖 Получение текста для тестирования
@@ -327,21 +330,25 @@ curl -X 'GET' \
 ### ⚡ Быстрый старт
 
 **Запустить все тесты**
+
 ```bash
   pytest
 ```
 
 **Запустить с подробным выводом**
+
 ```bash
   pytest -v
 ```
 
 **Запустить конкретный файл тестов**
+
 ```bash
   pytest backend/tests/test_routes.py
 ```
 
 **Запустить с покрытием кода**
+
 ```bash
   pytest --cov=backend/app
 ```
