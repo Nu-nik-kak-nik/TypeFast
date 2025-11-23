@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from sqlalchemy import text
 
 from backend.app.core.config import settings
 from backend.app.core.logger import error_logger, request_logger
@@ -123,3 +124,14 @@ async def get_user_test_statistics(user_id: str, session: SessionDependency):
         raise HTTPException(
             status_code=500, detail="Internal server error when receiving statistics"
         )
+
+
+@router.get("/health", include_in_schema=False)
+async def health_check(session: SessionDependency):
+    """Простой healthcheck: проверяет доступность базы данных"""
+    try:
+        await session.execute(text("SELECT 1"))
+        return {"status": "ok"}
+    except Exception as e:
+        error_logger.error(f"Health check failed: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="service unavailable")

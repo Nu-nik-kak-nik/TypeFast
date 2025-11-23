@@ -19,13 +19,13 @@ services:
       - ENVIRONMENT=development
     command: >
       bash -c "
-        echo 'Applying migrations...' &&
+        echo '[*] Applying database migrations...' &&
         alembic upgrade head &&
-        echo 'Starting Uvicorn...' &&
+        echo '[*] Starting Uvicorn with hot-reload...' &&
         uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
       "
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
