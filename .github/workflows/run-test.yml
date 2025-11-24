@@ -34,7 +34,7 @@ jobs:
           cat result.log  # Выводим результаты тестов в консоль
 
       - name: Upload test results artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: result.log
