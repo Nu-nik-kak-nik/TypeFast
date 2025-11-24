@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.13"
 
@@ -34,7 +34,7 @@ jobs:
           cat result.log  # Выводим результаты тестов в консоль
 
       - name: Upload test results artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-results
           path: result.log
