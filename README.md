@@ -1,10 +1,13 @@
 <h1 align="center">🚀 TypeFast 🚀</h1>
 
 <p align="center">
-  <img src="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/test.yml/badge.svg" alt="Test Status" />
-  <img src="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/docker-build-health-check.yml/badge.svg" alt="Docker Build & Health Check Status" />
+  <a href="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/run-test.yml">
+    <img src="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/run-test.yml/badge.svg" alt="Test Status" />
+  </a>
+  <a href="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/docker-build-health-check.yml">
+    <img src="https://github.com/Nu-nik-kak-nik/TypeFast/actions/workflows/docker-build-health-check.yml/badge.svg" alt="Docker Build & Health Check Status" />
+  </a>
 </p>
-
 
 **TypeFast** — это веб-приложение для проверки скорости печати с генерацией текста из словаря, поддержкой русского и английского языков для печати, различными уровнями сложности, с профилем пользователя где есть детальная статистика с графиками.
 
