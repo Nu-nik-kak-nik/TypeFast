@@ -34,14 +34,14 @@ jobs:
 
       - name: Start services with Docker Compose
         run: |
-          docker-compose up -d
+          docker compose up -d
           echo "Services started, waiting for initialization..."
 
       - name: Wait for database migrations
         run: |
           echo "Waiting for database migrations to complete..."
           for i in {1..30}; do
-            if docker-compose logs backend | grep -q "Starting Uvicorn"; then
+            if docker compose logs backend | grep -q "Starting Uvicorn"; then
               echo "Migrations completed!"
               break
             fi
@@ -69,7 +69,7 @@ jobs:
           done
 
           echo "✗ API health check failed after $max_attempts attempts"
-          docker-compose logs backend
+          docker compose logs backend
           exit 1
 
       - name: Check Frontend availability
@@ -79,7 +79,7 @@ jobs:
             echo "✓ Frontend is available!"
           else
             echo "✗ Frontend is not available"
-            docker-compose logs backend
+            docker compose logs backend
             exit 1
           fi
 
@@ -90,7 +90,7 @@ jobs:
             echo "✓ Docs are available!"
           else
             echo "✗ Docs are not available"
-            docker-compose logs backend
+            docker compose logs backend
             exit 1
           fi
 
@@ -98,11 +98,11 @@ jobs:
         if: always()
         run: |
           echo "Container health status:"
-          docker-compose ps
+          docker compose ps
           echo ""
           echo "Backend container logs:"
-          docker-compose logs backend --tail=50
+          docker compose logs backend --tail=50
 
       - name: Cleanup
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
