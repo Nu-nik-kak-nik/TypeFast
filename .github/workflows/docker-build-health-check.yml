@@ -13,48 +13,96 @@ on:
 jobs:
   docker-health-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: docker build -t typefast-backend .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: typefast-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Start services with Docker Compose
-        run: docker-compose up -d
+        run: |
+          docker-compose up -d
+          echo "Services started, waiting for initialization..."
+
+      - name: Wait for database migrations
+        run: |
+          echo "Waiting for database migrations to complete..."
+          for i in {1..30}; do
+            if docker-compose logs backend | grep -q "Starting Uvicorn"; then
+              echo "Migrations completed!"
+              break
+            fi
+            echo "Attempt $i/30: Waiting for migrations..."
+            sleep 2
+          done
 
       - name: Wait for services to be ready
-        run: |
-          echo "Waiting for services to start..."
-          sleep 15  # Даем время для запуска приложения и инициализации базы данных
+        run: sleep 10
 
       - name: Health check for API
         run: |
-          echo "Waiting for API to be healthy..."
-          for i in {1..10}; do
-            if curl -f http://localhost:8000/api/health; then
-              echo "API is healthy!"
-              break
+          echo "Checking API health..."
+          max_attempts=15
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
+              echo "✓ API is healthy!"
+              exit 0
             fi
-            echo "API is not healthy yet, retrying..."
-            sleep 5
+            echo "Attempt $attempt/$max_attempts: API not ready yet..."
+            sleep 3
+            attempt=$((attempt + 1))
           done
+
+          echo "✗ API health check failed after $max_attempts attempts"
+          docker-compose logs backend
+          exit 1
 
       - name: Check Frontend availability
         run: |
           echo "Checking Frontend availability..."
-          curl -f http://localhost:8000 || exit 1
-          echo "Frontend is available!"
+          if curl -sf http://localhost:8000 > /dev/null 2>&1; then
+            echo "✓ Frontend is available!"
+          else
+            echo "✗ Frontend is not available"
+            docker-compose logs backend
+            exit 1
+          fi
 
       - name: Check Docs availability
         run: |
           echo "Checking Docs availability..."
-          curl -f http://localhost:8000/docs || exit 1
-          echo "Docs are available!"
+          if curl -sf http://localhost:8000/docs > /dev/null 2>&1; then
+            echo "✓ Docs are available!"
+          else
+            echo "✗ Docs are not available"
+            docker-compose logs backend
+            exit 1
+          fi
+
+      - name: Check container health status
+        if: always()
+        run: |
+          echo "Container health status:"
+          docker-compose ps
+          echo ""
+          echo "Backend container logs:"
+          docker-compose logs backend --tail=50
 
       - name: Cleanup
-        run: docker-compose down
+        if: always()
+        run: docker-compose down -v
