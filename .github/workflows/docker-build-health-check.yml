@@ -1,0 +1,60 @@
+name: Docker Build & Health Check
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  docker-health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image
+        run: docker build -t typefast-backend .
+
+      - name: Start services with Docker Compose
+        run: docker-compose up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services to start..."
+          sleep 15  # Даем время для запуска приложения и инициализации базы данных
+
+      - name: Health check for API
+        run: |
+          echo "Waiting for API to be healthy..."
+          for i in {1..10}; do
+            if curl -f http://localhost:8000/api/health; then
+              echo "API is healthy!"
+              break
+            fi
+            echo "API is not healthy yet, retrying..."
+            sleep 5
+          done
+
+      - name: Check Frontend availability
+        run: |
+          echo "Checking Frontend availability..."
+          curl -f http://localhost:8000 || exit 1
+          echo "Frontend is available!"
+
+      - name: Check Docs availability
+        run: |
+          echo "Checking Docs availability..."
+          curl -f http://localhost:8000/docs || exit 1
+          echo "Docs are available!"
+
+      - name: Cleanup
+        run: docker-compose down
